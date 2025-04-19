@@ -1,0 +1,161 @@
+package runner;
+
+import java.net.MalformedURLException;
+
+import java.net.URL;
+import java.time.Duration;
+import java.util.Set;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.events.EventFiringDecorator;
+import org.openqa.selenium.support.events.WebDriverListener;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import utils.EventHandler;
+import utils.LoggerHandler;
+import utils.PropertyUtils;
+import utils.Reporter;
+import utils.Screenshot;
+
+
+public class Testarog {
+
+    Reporter reporter = new Reporter();
+    public static WebDriver driver;
+
+
+    @BeforeClass
+    public void extentRep(){
+        reporter.setupReport();
+    }
+
+
+    @BeforeMethod
+    public void start() throws MalformedURLException, FileNotFoundException{
+        ChromeOptions opt = new ChromeOptions();
+        driver = new RemoteWebDriver(new URL("http://localhost:4444"), opt);
+        opt.addArguments("--disable-notifications");
+        driver.get(PropertyUtils.getProperty("Url"));
+        driver.manage().window().maximize();
+
+        WebDriverListener listener = new EventHandler();
+        driver = new EventFiringDecorator<>(listener).decorate(driver);
+    }  
+
+
+    @Test
+    public void test1() throws InterruptedException, IOException{
+        reporter.createTest("Test1");
+
+        Thread.sleep(5000);
+
+        WebElement career = driver.findElement(By.xpath("//p[text() = 'Careers']"));
+        career.click();
+        reporter.getTest().info("Clicked on Careers");
+        Thread.sleep(3000);
+
+        WebElement helloUser = driver.findElement(By.xpath("//div[@class = 'ml-10']"));
+        helloUser.click();
+        reporter.getTest().info("Clicked on Hello User");
+        Thread.sleep(3000);
+
+        WebElement phNo = driver.findElement(By.cssSelector("#phone"));
+        phNo.sendKeys("08765427890");
+        reporter.getTest().info("Entered Phone Number");
+        Thread.sleep(3000);
+
+        WebElement ref = driver.findElement(By.xpath("//span[text() = 'Have a referral code?']"));
+        ref.click();
+        LoggerHandler.logger.info("Screenshot Captured");
+        reporter.getTest().info("Clicked on referral code");
+        Thread.sleep(3000);
+
+
+        WebElement refNo = driver.findElement(By.xpath("(//input[@class = 'input_input__q5Ft3'])[2]"));
+        refNo.sendKeys("7654");
+        Thread.sleep(3000);
+
+        WebElement login = driver.findElement(By.xpath("//div[@class = 'arogga-btn primary large  ']"));
+        login.click();
+        Thread.sleep(3000);
+
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+
+        WebElement termsAndCond = driver.findElement(By.xpath("//a[text() = 'Terms & Conditions']"));
+        termsAndCond.click();
+        Thread.sleep(3000);
+
+        String currWindowHandle = driver.getWindowHandle();
+            Set<String> allWindowHandle = driver.getWindowHandles();
+            for(String handle : allWindowHandle){
+            String childWindowHandle = handle;
+            if(!childWindowHandle.equals(currWindowHandle)){
+                driver.switchTo().window(childWindowHandle);
+            }
+        }
+        Thread.sleep(3000);
+            
+        WebElement blogs = driver.findElement(By.xpath("(//p[@class = 'navbar_text_size'])[14]"));
+        blogs.click();
+
+        Screenshot.captureScreenshot(driver);
+        LoggerHandler.logger.info("Screenshot Captured");
+    }
+
+
+
+    @Test
+    public void test2() throws InterruptedException, IOException{
+        WebElement labTest = driver.findElement(By.xpath("//div[@id = '/lab-test']"));
+        Actions act = new Actions(driver);
+        act.moveToElement(labTest).build().perform();
+        Thread.sleep(3000);
+        
+        WebElement heart = driver.findElement(By.xpath("//a[text() = 'Heart Health']"));
+        heart.click();
+        Thread.sleep(4000);
+
+        WebElement min_box = driver.findElement(By.xpath("//label[text() ='Min']"));
+        min_box.click();
+
+        WebElement min = driver.findElement(By.xpath("//input[@id = 'label-min']"));
+        min.sendKeys("250");
+        min.sendKeys(Keys.ENTER);
+
+        String filter = driver.findElement(By.xpath("//span[text() = 'Heart Health']")).getText();
+        String check = "Heart Health";
+        Assert.assertEquals(filter, check);
+
+        Screenshot.captureScreenshot(driver);
+    }
+
+
+
+
+    @AfterMethod
+    public void tearPage(){
+        if(driver != null){
+            driver.quit();
+        }
+    }
+
+    @AfterClass
+    public void tearReport(){
+        reporter.teardownReport();
+    }
+}

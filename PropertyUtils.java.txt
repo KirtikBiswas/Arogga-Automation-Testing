@@ -1,0 +1,25 @@
+package utils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
+import java.util.Properties;
+
+public class PropertyUtils {
+    public static String getProperty(String propToRead) throws FileNotFoundException{
+        String property = null;
+        try{
+            File file = new File("/home/coder/project/workspace/Project/config/browser.properties");
+            FileInputStream fis = new FileInputStream(file);
+            Properties prop = new Properties();
+
+            prop.load(fis);
+            property = prop.getProperty(propToRead);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return property;
+    }
+}
